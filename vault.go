@@ -266,8 +266,16 @@ func (v *Client) List(path string) (keys []string, err error) {
 	}
 
 	if sealed {
-		return nil, fmt.Errorf("list: vault is currently sealed")
+		return nil, fmt.Errorf("delete: vault is currently sealed")
 	}
+
+	// get a valid token and connect to Vault
+	token, err := v.auth.GetToken(v.client)
+	if nil != err {
+		return nil, fmt.Errorf("delete: %w", err)
+	}
+
+	v.client.SetToken(token)
 
 	c := v.client.Logical()
 	if nil == c {

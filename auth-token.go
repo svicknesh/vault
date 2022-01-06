@@ -56,9 +56,11 @@ func (t *Token) GetToken(c *hvault.Client) (token string, err error) {
 		return t.token, nil
 	}
 
+	// following requests will require the token
+	c.SetToken(t.token)
+
 	// this is run only the first time this function is called, after which we will have the information populated
 	if t.expires.IsZero() {
-		c.SetToken(t.token)
 		secret, errZero := c.Logical().Read("/auth/token/lookup-self")
 		if nil != errZero {
 			return "", fmt.Errorf("gettoken: %w", errZero)
@@ -86,7 +88,6 @@ func (t *Token) GetToken(c *hvault.Client) (token string, err error) {
 	}
 
 	// try to renew the token
-	c.SetToken(t.token)
 	_, err = c.Logical().Write("/auth/token/renew-self", nil)
 	if nil != err {
 		return "", fmt.Errorf("gettoken: %w", err)
