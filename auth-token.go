@@ -19,7 +19,9 @@ type Token struct {
 
 // NewToken - creates a new instance of Token
 func NewToken(token string) (t *Token) {
-	return &Token{}
+	return &Token{
+		token: token,
+	}
 }
 
 // SetToken - sets a token
@@ -59,13 +61,13 @@ func (t *Token) GetToken(c *hvault.Client) (token string, err error) {
 		c.SetToken(t.token)
 		secret, errZero := c.Logical().Read("/auth/token/lookup-self")
 		if nil != errZero {
-			return "", fmt.Errorf("renew: %w", errZero)
+			return "", fmt.Errorf("gettoken: %w", errZero)
 		}
 		//print.JSON(secret)
 
 		ttl, errZero := secret.Data["creation_ttl"].(json.Number).Int64()
 		if nil != errZero {
-			return "", fmt.Errorf("renew: %w", errZero)
+			return "", fmt.Errorf("gettoken: %w", errZero)
 		}
 
 		if ttl > 20 {
@@ -87,7 +89,7 @@ func (t *Token) GetToken(c *hvault.Client) (token string, err error) {
 	c.SetToken(t.token)
 	_, err = c.Logical().Write("/auth/token/renew-self", nil)
 	if nil != err {
-		return "", fmt.Errorf("renew: %w", err)
+		return "", fmt.Errorf("gettoken: %w", err)
 	}
 
 	return t.token, nil
